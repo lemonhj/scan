@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+
+   <select id="selectIdByMaxUpDate"   resultType="java.lang.Double" parameterType="java.util.Date">
+   		SELECT A.ID FROM TXT_NWS_BAS A where A.PUB_DT <![CDATA[=]]> str_to_date(date_format(:maxUpDate,'%Y%m%d'),'%Y%m%d')
+   </select>
+
+	<sql id="selectAllNws">
+        SELECT
+		A.KEYW_NAME,
+		F.SECU_ID,
+		G.TRD_CODE,
+		G.SECU_SHT,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		A.SUB_TIT,
+		A.MED_NAME,
+		A.AUT,
+		B.TYP_CODE,
+		A.INFO_LVL,
+		C.FLD_VAL AS FLD_OBJ,
+		D.FLD_VAL AS FLD_NATION,
+		E.CONT,
+		E.CONT_FMT,
+		A.UPD_TIME,
+		A.ENT_TIME,
+		H.SECT_ID,
+		I.INDU_ID,
+		A.MED_CODE,
+		A.RS_ID
+		FROM TXT_NWS_BAS A
+	    LEFT JOIN TXT_NWS_TYP B ON A.ID=B.ORIG_ID
+		LEFT JOIN TXT_NWS_BAS_TXT E ON A.ID=E.ORIG_ID
+		LEFT JOIN TXT_NWS_SECU F ON A.ID=F.ORIG_ID
+		LEFT JOIN TXT_NWS_SECT H ON A.ID=H.ORIG_ID
+        LEFT JOIN BAS_SECT_INFO I ON H.SECT_ID = I.SECT_ID
+		LEFT JOIN BAS_SECU_INFO G ON F.SECU_ID=G.SECU_ID
+		LEFT JOIN TXT_NWS_ATT C ON A.ID=C.ORIG_ID AND C.FLD_CODE=4
+		LEFT JOIN TXT_NWS_ATT D ON A.ID=D.ORIG_ID AND D.FLD_CODE=5
+	</sql>
+	
+	<select id="selectAllNwsByYear" resultMap="nwsMap">
+		<include refid="selectAllNws" />
+		    where A.PUB_DT <![CDATA[>=]]> str_to_date(date_format(:begDate,'%Y%m%d'),'%Y%m%d')
+		     and A.PUB_DT <![CDATA[<]]> str_to_date(date_format(:endDate,'%Y%m%d'),'%Y%m%d')
+	</select>
+	
+	<select id="selectAllNwsBy3M" resultMap="nwsMap" parameterType="java.util.Date">
+		<include refid="selectAllNws" />
+		    where A.PUB_DT <![CDATA[>=]]> str_to_date(date_format(:paramDate,'%Y%m%d'),'%Y%m%d')
+	</select>
+	
+	<select id="selectAllNwsAft3M" resultMap="nwsMap" parameterType="java.util.Date">
+		<include refid="selectAllNws" />
+		    where A.PUB_DT <![CDATA[<]]> str_to_date(date_format(:paramDate,'%Y%m%d'),'%Y%m%d')
+	</select>
+	
+	<select id="selectNwsByMaxId" resultMap="nwsMap"  parameterType="java.util.Date">
+		select * from (
+		SELECT
+		A.KEYW_NAME,
+		F.SECU_ID,
+		G.TRD_CODE,
+		G.SECU_SHT,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		A.SUB_TIT,
+		A.MED_NAME,
+		A.AUT,
+		B.TYP_CODE,
+		A.INFO_LVL,
+		C.FLD_VAL AS FLD_OBJ,
+		D.FLD_VAL AS FLD_NATION,
+		E.CONT,
+		E.CONT_FMT,
+		GREATEST(IFNULL(A.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(B.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(C.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(D.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(E.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(F.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(G.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(I.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(H.UPD_TIME, str_to_date('1900-01', '%Y-%m'))) AS UPD_TIME,
+		A.ENT_TIME,
+		H.SECT_ID,
+		I.INDU_ID,
+		A.MED_CODE,
+		A.RS_ID
+		FROM TXT_NWS_BAS A
+		LEFT JOIN TXT_NWS_TYP B ON A.ID=B.ORIG_ID
+		LEFT JOIN TXT_NWS_BAS_TXT E ON A.ID=E.ORIG_ID
+		LEFT JOIN TXT_NWS_SECU F ON A.ID=F.ORIG_ID
+		LEFT JOIN TXT_NWS_SECT H ON A.ID=H.ORIG_ID
+		LEFT JOIN BAS_SECT_INFO I ON H.SECT_ID = I.SECT_ID
+		LEFT JOIN BAS_SECU_INFO G ON F.SECU_ID=G.SECU_ID
+		LEFT JOIN TXT_NWS_ATT C ON A.ID=C.ORIG_ID AND C.FLD_CODE=4
+		LEFT JOIN TXT_NWS_ATT D ON A.ID=D.ORIG_ID AND D.FLD_CODE=5 where to_days(A.UPD_TIME) <![CDATA[>=]]> str_to_date(date_format(:maxUpDate,'%Y%m%d'),'%Y%m%d')) zzz
+		where UNIX_TIMESTAMP(Upd_Time) <![CDATA[>=]]> UNIX_TIMESTAMP(:maxUpDate) order by Upd_Time desc,ID desc
+	</select>
+</mapper>

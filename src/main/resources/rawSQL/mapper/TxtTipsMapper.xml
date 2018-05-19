@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+	<select id="selectAllTip" resultType="Map">
+		select * from (
+		select a.id,
+		a.secu_id as secu_id,
+		a.pub_dt,
+		a.bgn_dt,
+		a.end_dt,
+		a.ntc_cont,
+		a.typ_codei,
+		a.typ_codeii,
+		a.typ_namei,
+		a.typ_nameii,
+		a.ent_time,
+		A.UPD_TIME,
+		a.rs_id,
+		b.trd_code as trd_code,
+		b.secu_sht,
+		b.typ_codei as bsi_typ_codei,
+		b.LST_STS_CODE
+		from bas_spcl_ntc a
+		left join bas_secu_info b
+		on a.secu_id = b.secu_id
+		where b.typ_codei in (10, 12)
+		
+		union
+		
+		select a.id,
+		a.secu_id,
+		a.pub_dt,
+		a.bgn_dt,
+		a.end_dt,
+		a.ntc_cont,
+		a.typ_codei,
+		a.typ_codeii,
+		a.typ_namei,
+		a.typ_nameii,
+		a.ent_time,
+		A.UPD_TIME,
+		a.rs_id,
+		substr(b.trd_code, 0, 6) as trd_code,
+		b.secu_sht,
+		b.typ_codei as bsi_typ_codei,
+		b.LST_STS_CODE
+		from bas_spcl_ntc a
+		left join bas_secu_info b
+		on a.secu_id = b.secu_id
+		where b.typ_codei = 11
+		) order by upd_time asc
+	</select>
+
+	<select id="selectTipsByMaxUpdTime" resultType="Map" parameterType="java.util.Date">
+		select * from (
+		select a.id,a.secu_id as secu_id,
+		a.pub_dt,
+		a.bgn_dt,
+		a.end_dt,
+		a.ntc_cont,
+		a.typ_codei,
+		a.typ_codeii,
+		a.typ_namei,
+		a.typ_nameii,
+		a.ent_time,
+		GREATEST(nvl(A.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+		nvl(B.UPD_TIME, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME,
+		a.rs_id,
+		b.trd_code as trd_code,
+		b.secu_sht,
+		b.typ_codei as bsi_typ_codei,
+		b.LST_STS_CODE
+		from bas_spcl_ntc a
+		left join bas_secu_info b
+		on a.secu_id = b.secu_id
+		where b.typ_codei in (10, 12)
+		
+		union
+		
+		select a.id,a.secu_id,
+		a.pub_dt,
+		a.bgn_dt,
+		a.end_dt,
+		a.ntc_cont,
+		a.typ_codei,
+		a.typ_codeii,
+		a.typ_namei,
+		a.typ_nameii,
+		a.ent_time,
+		GREATEST(nvl(A.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+		nvl(B.UPD_TIME, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME,
+		a.rs_id,
+		substr(b.trd_code, 0, 6) as trd_code,
+		b.secu_sht,
+		b.typ_codei as bsi_typ_codei,
+		b.LST_STS_CODE
+		from bas_spcl_ntc a
+		left join bas_secu_info b
+		on a.secu_id = b.secu_id
+		where b.typ_codei = 11
+		)
+		where Upd_Time <![CDATA[>=]]> :maxUpDate order by Upd_Time asc
+	</select>
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:reg="http://www.dangdang.com/schema/ddframe/reg" xmlns:job="http://www.dangdang.com/schema/ddframe/job"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.dangdang.com/schema/ddframe/reg
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd
+                        http://www.dangdang.com/schema/ddframe/job
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd
+                        ">
+    <!-- 加载配置文件 -->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:elas.properties</value>
+                <value>classpath:application.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--配置作业注册中心 -->
+    <reg:zookeeper id="regCenter" server-lists="${zk.server}" namespace="${zk.namespace}"
+                   base-sleep-time-milliseconds="${zk.base-sleep}" max-sleep-time-milliseconds="${zk.max-sleep}"
+                   max-retries="${zk.max-retries}"/>
+    <!-- 主程BEAN  -->
+    <bean id="subjectServiceNew" class="com.bigdata.datacenter.datasync.service.impl.mysql.MysqlSubjectServiceImplNew"/>
+
+    <!--定时器  配置开始-->
+
+    <!-- 1.扫描更新JOB配置-->
+    <job:simple id="updateSubJob" class="com.bigdata.datacenter.datasync.elasticjob.mysql.UpdateSubjectJob" registry-center-ref="regCenter"
+                failover="true" misfire="true" cron="0 0/22 * * * ? *" sharding-total-count="1" description="扫描更新JOB"
+                event-trace-rdb-data-source="dataSourceFromMysql"/>
+    <!-- 2.CRON更新触发配置-->
+    <job:simple id="pridSubJob" class="com.bigdata.datacenter.datasync.elasticjob.mysql.ScanImedSubjectJob" registry-center-ref="regCenter"
+                failover="true" misfire="true" cron="0 0/1 * * * ? *" sharding-total-count="1" description="周期扫描任务JOB"
+                event-trace-rdb-data-source="dataSourceFromMysql"/>
+    <!-- 3.立即触发配置-->
+    <job:simple id="updateImedSubJob" class="com.bigdata.datacenter.datasync.elasticjob.mysql.CronUpdatePridSubjectJob" registry-center-ref="regCenter"
+                failover="true" misfire="true" cron="0 0/1 * * * ? *" sharding-total-count="1" description="手动强制更新JOB"
+                event-trace-rdb-data-source="dataSourceFromMysql"/>
+    <!--定时器  配置结束-->
+
+
+</beans>

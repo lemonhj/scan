@@ -1,0 +1,31 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	   xsi:schemaLocation="http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="propertyConfigurer"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="/application.properties" />
+	</bean>
+
+	<mongo:mongo-client host="127.0.0.1" port="27017">
+		<mongo:client-options write-concern="NORMAL" />
+	</mongo:mongo-client>
+
+	<!--<mongo:mongo-client host="172.17.1.100" port="27017">-->
+		<!--<mongo:client-options write-concern="NORMAL" />-->
+	<!--</mongo:mongo-client>-->
+
+
+	<!--<bean id="mongoTxtBltTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">-->
+		<!--<constructor-arg ref="mongo"/>-->
+		<!--<constructor-arg name="databaseName" value="TXT_BLT_LIST"/>-->
+	<!--</bean>-->
+
+	<!--<bean id="mongoTxtRrpStatusTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">-->
+		<!--<constructor-arg ref="mongo"/>-->
+		<!--<constructor-arg name="databaseName" value="TXT_RRP_STATUS"/>-->
+	<!--</bean>-->
+
+</beans>

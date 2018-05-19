@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.IReportBasMapper">
+
+	<resultMap type="java.util.HashMap"  id="induRatMap">
+		<result property="indu_rat_orig_desc"/>
+		<result property="indu_rat_orig_desc_lst" />
+	</resultMap>
+	<resultMap type="java.util.HashMap"  id="secuRatMap">
+		<result property="rat_orig_desc"/>
+		<result property="rat_orig_desc_lst" />
+		<result property=" targ_prc_min"/>
+		<result property="targ_prc_max" />
+	</resultMap>
+	
+	<select id="selectInduIdsByOrgId" resultType="Long" parameterType="Double">
+	    select indu_id from rrp_rpt_indu c where c.orig_id = :origId
+	</select>
+	<select id="selectSecuIdByOrgId" resultType="Long" parameterType="Double">
+	    select secu_id from rrp_rpt_secu d where d.orig_id = :origId
+	</select>
+	<select id="selectFldvalsByOrgId" resultType="Long" parameterType="Double">
+	    select fld_val from rrp_rpt_att e where e.orig_id = :origId and e.fld_code = 2
+	</select>
+	<select id="selectInduRatByOrgId"  resultMap="induRatMap" parameterType="Double">
+	    select rat_orig_desc as indu_rat_orig_desc, rat_orig_desc_lst as indu_rat_orig_desc_lst from rrp_rpt_indu_rat e where e.orig_id = :origId
+	</select>
+	<select id="selectSecuRatByOrgId"  resultMap="secuRatMap" parameterType="Double">
+	    select rat_orig_desc,rat_orig_desc_lst, targ_prc_min, targ_prc_max from rrp_rpt_secu_rat e where e.orig_id = :origId
+	</select>
+
+	<select id="selectAllRrpBas" resultMap="rrpBasMap">
+		SELECT A.ID,
+		A.PUB_DT,
+		A.WRT_DT,
+		A.COM_ID,
+		A.COM_NAME,
+		A.AUT,
+		A.TIT,
+		A.SUB_TIT,
+		A.KEYW,
+		A.OBJ_CODE,
+		A.RPT_LVL,
+		A.RPT_DEG,
+		A.AREA_CODE,
+		A.EXCH_CODE,
+		A.LANG_TYP,
+		A.IS_WTR_MARK,
+		A.SECT_CODE,
+		A.SUBJ_CODE,
+		A.RPT_TYP_CODE,
+		B.ABST_SHT,
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM RRP_RPT_BAS A
+		JOIN rrp_rpt_ann C ON A.ID = C.ORIG_ID
+		LEFT JOIN RRP_RPT_SUP B
+		ON A.ID = B.ORIG_ID
+		WHERE TIT IS NOT NULL  order by A.UPD_TIME desc
+	</select>
+
+	<select id="selectRrpBasByMaxId" resultMap="rrpBasMap"  parameterType="java.util.Date">
+		SELECT A.ID,
+		A.PUB_DT,
+		A.WRT_DT,
+		A.COM_ID,
+		A.COM_NAME,
+		A.AUT,
+		A.TIT,
+		A.SUB_TIT,
+		A.KEYW,
+		A.OBJ_CODE,
+		A.RPT_LVL,
+		A.RPT_DEG,
+		A.AREA_CODE,
+		A.EXCH_CODE,
+		A.LANG_TYP,
+		A.IS_WTR_MARK,
+		A.SECT_CODE,
+		A.SUBJ_CODE,
+		A.RPT_TYP_CODE,
+		B.ABST_SHT,
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM RRP_RPT_BAS A
+		JOIN rrp_rpt_ann C ON A.ID = C.ORIG_ID
+		LEFT JOIN RRP_RPT_SUP B
+		ON A.ID = B.ORIG_ID
+		WHERE TIT IS NOT NULL  and A.Upd_Time <![CDATA[>=]]> :maxUpDate order by A.UPD_TIME desc
+	</select>
+	
+        <select id="selectRrpIdByMaxUpDate" resultType="java.lang.Double" parameterType="java.util.Date">
+        select ID from (
+		SELECT A.ID,
+		A.UPD_TIME,
+		FROM RRP_RPT_BAS A
+		JOIN rrp_rpt_ann C ON A.ID = C.ORIG_ID
+		LEFT JOIN RRP_RPT_SUP B
+		ON A.ID = B.ORIG_ID
+		WHERE A.TIT IS NOT NULL) where UPD_TIME <![CDATA[>=]]> convert(varchar(8),:maxUpDate,112)
+	</select>
+</mapper>

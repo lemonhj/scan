@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+
+    <sql id="allIndex">
+    SELECT
+        C.DS_TYP,
+		A.ID,
+		A.IDX_ID,
+		A.EXT_SOUR,
+		A.IDX_NAME,
+		AA.CAT_CODE,
+		A.UNIT_TYP_CODE,
+		A.UNIT_FCTR,
+		A.DECI_NUM,
+		A.REF_IDX_CODE,
+		A.TYP_CODEI,
+		C.DS_PARAM,
+		A.FLD_NAME,
+		A.OBJ_ID,
+		C.DS_ENG_NAME,
+		A.IDX_TYP,
+		A.VW_FMT,
+		D.UNIT_TYP_NAME,
+		AA.SN,
+		A.IS_USE,
+		A.VW_UNIT_CODE,
+		A.IDX_PARAM,
+		GREATEST(A.UPD_TIME,C.UPD_TIME) AS UPD_TIME,
+		C.PARAM_DFT_VAL,
+		C.Sql_Clause,
+		C.DS_PARAM_FULL,
+		C.Obj_Id as DS_OBJ_ID,
+		C.UPD_PARAM,
+		C.DEL_PARAM,
+		C.UPD_KEY,
+		C.INIT_SQL,
+		B.DB_NAME
+		FROM DSK_IDX A JOIN DSK_OBJ B ON A.OBJ_ID=B.OBJ_ID
+		JOIN DSK_IDX_TO_CAT AA ON A.IDX_ID=AA.IDX_ID
+		JOIN dsk_data_sour_def C ON B.OBJ_ID=C.OBJ_ID
+		LEFT JOIN DSK_UNIT_TYP D ON A.UNIT_TYP_CODE=D.UNIT_TYP_CODE
+		WHERE AA.SN IS NOT NULL
+		AND A.IS_USE!=0 AND C.DS_TYP in (2,3,6,7) and c.db_typ = 1
+	</sql>
+	
+	<select id="selectDsNmsForIdx"  resultType="String">
+	     select distinct DS_ENG_NAME FROM DSK_IDX A JOIN DSK_OBJ B ON A.OBJ_ID=B.OBJ_ID
+		JOIN DSK_IDX_TO_CAT AA ON A.IDX_ID=AA.IDX_ID
+		JOIN dsk_data_sour_def C ON B.OBJ_ID=C.OBJ_ID
+		LEFT JOIN DSK_UNIT_TYP D ON A.UNIT_TYP_CODE=D.UNIT_TYP_CODE
+		WHERE AA.SN IS NOT NULL
+		AND A.IS_USE!=0 AND C.DS_TYP in (2,3,6,7) and c.db_typ = 1
+	</select>
+	
+	<select id="selectIdxByDsNm"  resultMap="indexObjMap"  parameterType="String">
+		<include refid="allIndex" />
+        and C.DS_ENG_NAME = :DS_ENG_NAME
+		ORDER BY DS_ENG_NAME,IDX_ID
+	</select>
+	
+	<select id="selectIdxByUdpTime"  resultMap="indexObjMap"  parameterMap="lastScanChgProTime">
+		    <include refid="allIndex" />
+	        and A.UPD_TIME <![CDATA[>=]]> TO_DATE(:beginDateTime, 'YYYY-MM-DD HH24:MI:SS')
+	        and A.UPD_TIME <![CDATA[<]]> TO_DATE(:endDateTime, 'YYYY-MM-DD HH24:MI:SS')
+            ORDER BY A.UPD_TIME,DS_ENG_NAME,IDX_ID
+	</select>
+	
+	<select id="selectIndexAll" resultMap="indexObjMap">
+		<include refid="allIndex" />
+		ORDER BY DS_ENG_NAME,IDX_ID
+	</select>
+	
+	<select id="selectIndexAllByDate"  resultType="String"
+		parameterMap="dateTimeMap">
+      select distinct DS_ENG_NAME
+          from dsk_tbl
+         where upper(TBL_NAME) in (
+                            select distinct upper(TABLENAME)
+                              from (select *
+                                       from TABLECHANGELOG
+                                      where UPDATETIME <![CDATA[>=]]> TO_DATE(:beginDateTime, 'YYYY-MM-DD HH24:MI:SS') and UPDATETIME <![CDATA[<]]> TO_DATE(:endDateTime, 'YYYY-MM-DD HH24:MI:SS')
+                                      order by UPDATETIME desc)
+                            )
+--             and DS_ENG_NAME = 'COMCN_INC_Q'
+         ORDER BY DS_ENG_NAME
+	</select>
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.ITxtNwsMapper">
+	<resultMap type="news" id="nwsMap">
+		<result property="AUT" column="AUT" />
+		<result property="CONT" column="CONT" />
+		<result property="FLD_NATION" column="FLD_NATION" />
+		<result property="FLD_OBJ" column="FLD_OBJ" />
+		<result property="ID" column="ID" />
+		<result property="SECU_ID" column="SECU_ID" />
+		<result property="INFO_LVL" column="INFO_LVL" />
+		<result property="MED_NAME" column="MED_NAME" />
+		<result property="PUB_DT" column="PUB_DT" />
+		<result property="SECU_SHT" column="SECU_SHT" />
+		<result property="TIT" column="TIT" />
+		<result property="SUB_TIT" column="SUB_TIT" />
+		<result property="TRD_CODE" column="TRD_CODE" />
+		<result property="TYP_CODE" column="TYP_CODE" />
+		<result property="CST_DESC" column="CST_DESC" />
+		<result property="KEYW_NAME" column="KEYW_NAME" />
+		<result property="UPD_TIME" column="UPD_TIME" />
+		<result property="ENT_TIME" column="ENT_TIME" />
+		<result property="SECT_ID" column="SECT_ID" />
+		<result property="INDU_ID" column="INDU_ID" />
+		<result property="MED_CODE" column="MED_CODE" />
+		<result property="RS_ID" column="RS_ID" />
+		<result property="CONT_FMT" column="CONT_FMT" />
+	</resultMap>
+
+	<parameterMap type="java.util.HashMap" id="dateTimeMap">
+		<parameter property="begDate" />
+		<parameter property="endDate" />
+	</parameterMap>
+
+   <select id="selectIdByMaxUpDate"   resultType="java.lang.Double" parameterType="java.util.Date">
+   		SELECT A.ID FROM TEXT_BASICINFO A 
+   		JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 30
+   		where A.PubDate <![CDATA[>=]]> to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')
+   </select>
+
+	<sql id="selectAllNws">
+        SELECT
+        A.Keywords as KEYW_NAME,
+        F.SecuCode as SECU_ID,
+        F.TradingCode as TRD_CODE,
+        F.SecuAbbr as SECU_SHT,
+        A.ID,
+        A.PubDate as PUB_DT,
+        A.TextTitle as TIT,
+        A.SubTitle as SUB_TIT,
+        A.MediaName as MED_NAME,
+        A.Authors as AUT,
+        A.TextCategory as TYP_CODE,
+        J.CONSTDESC,
+        A.InfoLevel as INFO_LVL,
+        0 as FLD_OBJ,
+        0 as FLD_NATION,
+        A.Abstract as CONT,
+        3 as CONT_FMT,
+        --E.AnnexContent as CONT,
+        --E.AnnexFormat as CONT_FMT,
+        A.UpdateTime as UPD_TIME,
+        A.EntryTime as ENT_TIME,
+        --H.SECT_ID,
+        I.INDUNUM as INDU_ID,
+        A.MediaCode as MED_CODE,
+        A.ResourceID as RS_ID
+        FROM TEXT_BASICINFO A
+        --LEFT JOIN TXT_NWS_TYP B ON A.ID=B.ORIG_ID
+        LEFT JOIN TEXT_ANNEX E ON A.ID=E.OriginalCode
+        LEFT JOIN TEXT_SECU F ON A.ID=F.OriginalCode
+        --LEFT JOIN TXT_NWS_SECT H ON A.ID=H.OriginalCode
+        LEFT JOIN TEXT_INDUSTRY I ON A.ID=I.OriginalCode
+        --LEFT JOIN BAS_SECU_INFO G ON F.SECU_ID=G.SECU_ID
+        --LEFT JOIN TXT_NWS_ATT C ON A.ID=C.ORIG_ID AND C.FLD_CODE=4
+        --LEFT JOIN TXT_NWS_ATT D ON A.ID=D.ORIG_ID AND D.FLD_CODE=5
+        JOIN cnt_text J ON A.TextCategory = J.CONSTCODE AND J.CNTTYPE = 30
+	</sql>
+	
+   <select id="selectAllNwsByYear" resultMap="nwsMap">
+		<include refid="selectAllNws" />
+		    where A.PubDate <![CDATA[>=]]> to_date(to_char(:begDate,'yyyyMMdd'),'yyyyMMdd')
+		     and A.PubDate <![CDATA[<]]> to_date(to_char(:endDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+	
+	<select id="selectAllNwsBy3M" resultMap="nwsMap" parameterType="java.util.Date">
+		<include refid="selectAllNws" />
+		    where A.PubDate <![CDATA[>=]]> to_date(to_char(:paramDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+	
+	<select id="selectAllNwsAft3M" resultMap="nwsMap" parameterType="java.util.Date">
+		<include refid="selectAllNws" />
+		    where A.PubDate <![CDATA[<]]> to_date(to_char(:paramDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+	
+	<select id="selectNwsByMaxId" resultMap="nwsMap"  parameterType="java.util.Date">
+		select * from (
+        SELECT
+        A.Keywords as KEYW_NAME,
+        F.SecuCode as SECU_ID,
+        F.TradingCode as TRD_CODE,
+        F.SecuAbbr as SECU_SHT,
+        A.ID,
+        A.PubDate as PUB_DT,
+        A.TextTitle as TIT,
+        A.SubTitle as SUB_TIT,
+        A.MediaName as MED_NAME,
+        A.Authors as AUT,
+        A.TextCategory as TYP_CODE,
+        J.CONSTDESC,
+        A.InfoLevel as INFO_LVL,
+        0 as FLD_OBJ,
+        0 as FLD_NATION,
+        A.Abstract as CONT,
+        3 as CONT_FMT,
+       -- E.AnnexContent as CONT,
+       -- E.AnnexFormat as CONT_FMT,
+		GREATEST(nvl(A.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+		nvl(E.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+		nvl(F.UpdateTime, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME,
+        A.EntryTime as ENT_TIME,
+        --H.SECT_ID,
+        I.INDUNUM as INDU_ID,
+        A.MediaCode as MED_CODE,
+        A.ResourceID as RS_ID
+        FROM TEXT_BASICINFO A
+        --LEFT JOIN TXT_NWS_TYP B ON A.ID=B.ORIG_ID
+        LEFT JOIN TEXT_ANNEX E ON A.ID=E.OriginalCode
+        LEFT JOIN TEXT_SECU F ON A.ID=F.OriginalCode
+        --LEFT JOIN TXT_NWS_SECT H ON A.ID=H.ORIG_ID
+        LEFT JOIN TEXT_INDUSTRY I ON A.ID=I.OriginalCode
+        --LEFT JOIN BAS_SECU_INFO G ON F.SECU_ID=G.SECU_ID
+        --LEFT JOIN TXT_NWS_ATT C ON A.ID=C.ORIG_ID AND C.FLD_CODE=4
+        --LEFT JOIN TXT_NWS_ATT D ON A.ID=D.ORIG_ID AND D.FLD_CODE=5
+        JOIN cnt_text J ON A.TextCategory = J.CONSTCODE AND J.CNTTYPE = 30
+		where A.UpdateTime <![CDATA[>=]]> to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')) where Upd_Time <![CDATA[>=]]> :maxUpDate order by Upd_Time desc,ID desc
+	</select>
+</mapper>

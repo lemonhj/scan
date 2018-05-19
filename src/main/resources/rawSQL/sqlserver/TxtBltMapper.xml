@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.ITxtBltMapper">
+
+	<select id="selectAllBlt" resultMap="bulletMap">
+		SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,--证券类型
+		A.ID,--ID
+		A.PUB_DT,
+		A.TIT,--标题
+		D.TRD_CODE,--证券代码
+		D.SECU_SHT,--证券简称
+		A.INFO_SOUR, ---信息来源
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN BAS_SECU_INFO D ON C.SECU_ID=D.SECU_ID
+		order by A.UPD_TIME desc
+	</select>
+
+	<select id="selectBltByMaxId" resultMap="bulletMap"  parameterType="java.util.Date">
+		SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,--证券类型
+		A.ID,--ID
+		A.PUB_DT,
+		A.TIT,--标题
+		D.TRD_CODE,--证券代码
+		D.SECU_SHT,--证券简称
+		A.INFO_SOUR, ---信息来源
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN BAS_SECU_INFO D ON C.SECU_ID=D.SECU_ID
+		where A.Upd_Time <![CDATA[>=]]> :maxUpDate order by A.Upd_Time desc
+	</select>
+</mapper>

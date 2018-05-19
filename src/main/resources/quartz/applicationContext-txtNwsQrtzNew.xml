@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+	<!-- 定时器  -->
+	<bean id="txtNwsServiceNew" class="com.bigdata.datacenter.datasync.service.impl.TxtNwsServiceNewImpl"/>
+	<bean id="scanTxtNws" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="txtNwsServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>incrementalSync</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronUpdateTxtNwsTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanTxtNws" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/2 * * * ?</value>
+		</property>
+	</bean>
+	<bean id="cronUpdateTxtNwsTrigger_jyd1" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanTxtNws" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/1 8-11 * * ?</value>
+		</property>
+	</bean>
+	<bean id="cronUpdateTxtNwsTrigger_jyd2" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanTxtNws" />
+		</property>
+		<property name="cronExpression">
+			<value>0/1 * 15-16 * * ?</value>
+		</property>
+	</bean>
+	<bean id="cronUpdateTxtNwsTrigger_jyd3" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanTxtNws" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/2 0-7,12-14,17-23 * * ?</value>
+		</property>
+	</bean>
+	
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+			<!-- 终端新闻更新 -->
+				<ref bean="cronUpdateTxtNwsTrigger" />
+                <!-- 金银岛新闻更新 -->
+<!-- 				<ref bean="cronUpdateTxtNwsTrigger_jyd1" />
+				<ref bean="cronUpdateTxtNwsTrigger_jyd2" />
+				<ref bean="cronUpdateTxtNwsTrigger_jyd3" />-->
+			</list>
+		</property>
+	</bean>
+	
+</beans>

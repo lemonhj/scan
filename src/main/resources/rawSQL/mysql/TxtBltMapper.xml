@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+	<select id="selectAllBlt" resultMap="bulletMap">
+		select * from (
+		SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		D.TRD_CODE,
+		D.SECU_SHT,
+		A.INFO_SOUR,
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN BAS_SECU_INFO D ON C.SECU_ID=D.SECU_ID
+		left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where (D.Typ_Codei <![CDATA[<>]]> 11 or D.Typ_Codei is null)
+		
+		union all
+		
+		SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		SUBSTR(D.TRD_CODE,0,6) AS TRD_CODE,
+		D.SECU_SHT,
+		A.INFO_SOUR,
+		A.UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN FNDCN_BAS_INFO D ON C.SECU_ID=D.SECU_ID
+		left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where D.Is_Comb = 1
+		) zzz
+	</select>
+
+	<select id="selectBltByMaxId" resultMap="bulletMap"  parameterType="java.util.Date">
+		select * from (SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		D.TRD_CODE,
+		D.SECU_SHT,
+		A.INFO_SOUR, 
+		GREATEST(IFNULL(A.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(B.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(C.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(D.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(E.UPD_TIME, str_to_date('1900-01', '%Y-%m'))) AS UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN BAS_SECU_INFO D ON C.SECU_ID=D.SECU_ID
+	    left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where (D.Typ_Codei <![CDATA[<>]]> 11 or D.Typ_Codei is null) 
+		 and to_days(A.UPD_TIME) <![CDATA[>=]]> str_to_date(date_format(:maxUpDate,'%Y%m%d'),'%Y%m%d')
+		
+		union all
+		
+		SELECT
+		A.KEYW_NAME,
+		C.SECU_ID,
+		B.TYP_CODE,
+		A.ID,
+		A.PUB_DT,
+		A.TIT,
+		SUBSTR(D.TRD_CODE,0,6) AS TRD_CODE,
+		D.SECU_SHT,
+		A.INFO_SOUR, 
+		GREATEST(IFNULL(A.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(B.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(C.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(D.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(E.UPD_TIME, str_to_date('1900-01', '%Y-%m'))) AS UPD_TIME,
+		A.ENT_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN FNDCN_BAS_INFO D ON C.SECU_ID=D.SECU_ID
+		left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where D.Is_Comb = 1
+		and A.UPD_TIME <![CDATA[>=]]> str_to_date(date_format(:maxUpDate,'%Y%m%d'),'%Y%m%d')
+		) zzz 
+		where UNIX_TIMESTAMP(Upd_Time) <![CDATA[>=]]> UNIX_TIMESTAMP(:maxUpDate) order by Upd_Time desc
+	</select>
+	
+	<select id="selectBltIdByMaxUpDate" resultType="java.lang.Double" parameterType="java.util.Date">
+		select ID from (	SELECT
+		A.ID,
+		GREATEST(IFNULL(A.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(B.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(C.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(D.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(E.UPD_TIME, str_to_date('1900-01', '%Y-%m'))) AS UPD_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN BAS_SECU_INFO D ON C.SECU_ID=D.SECU_ID
+		left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where (D.Typ_Codei <![CDATA[<>]]> 11 or D.Typ_Codei is null) 
+		
+		union all
+		
+		SELECT
+		A.ID,
+		GREATEST(IFNULL(A.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(B.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(C.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(D.UPD_TIME, str_to_date('1900-01', '%Y-%m')),
+		IFNULL(E.UPD_TIME, str_to_date('1900-01', '%Y-%m'))) AS UPD_TIME
+		FROM TXT_BLT_BAS A
+		join txt_blt_ann E ON A.ID = E.ORIG_ID
+		LEFT JOIN TXT_BLT_TYP B
+		ON A.ID=B.ORIG_ID
+		left JOIN TXT_BLT_SECU C ON A.ID=C.ORIG_ID
+		left JOIN FNDCN_BAS_INFO D ON C.SECU_ID=D.SECU_ID
+		left JOIN BAS_CST_INFO F ON B.TYP_CODE = F.CST_NUM AND F.CST_TYP = 10100
+		where D.Is_Comb = 1
+		) zzz 
+		where Upd_Time <![CDATA[>=]]>  to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+</mapper>

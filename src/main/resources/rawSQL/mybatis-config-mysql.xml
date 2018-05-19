@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappers>
+   <mapper resource="rawSQL/mysql/TableChangeLogMapper.xml"/>
+   <mapper resource="rawSQL/mysql/DskObjPropMapper.xml"/>
+   <mapper resource="rawSQL/mysql/IndexAllMapper.xml"/>
+   <mapper resource="rawSQL/mysql/TxtBltMapper.xml"/>
+   <mapper resource="rawSQL/mysql/TxtNwsMapper.xml"/>
+   <mapper resource="rawSQL/mysql/ReportBasMapper.xml"/>
+   <mapper resource="rawSQL/mysql/CombDskEngMapper.xml"/>
+   <mapper resource="rawSQL/mysql/TxtLawMapper.xml"/>
+   <mapper resource="rawSQL/mysql/TxtTipsMapper.xml"/>
+</mappers>

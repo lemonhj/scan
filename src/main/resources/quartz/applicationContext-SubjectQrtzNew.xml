@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+	<!-- 定时器  -->
+	<bean id="subjectServiceNew" class="com.bigdata.datacenter.datasync.service.impl.SubjectServiceImplNew"/>
+	<bean id="scanSubject" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="subjectServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>incrementalSync</value>
+		</property>
+		<property name="concurrent" value="true" />
+	</bean>
+
+	<bean id="cronUpdateSubTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanSubject" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/22 * * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="scanPridSubject" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="subjectServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>savePridSubToShdle</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronUpdatePridSubTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanPridSubject" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/1 * * * ?</value>
+		</property>
+	</bean>
+
+	<bean id="scanImedSubject" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="subjectServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>saveImedSubToShdle</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronUpdateImedSubTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanImedSubject" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/1 * * * ?</value>
+		</property>
+	</bean>
+
+	<bean id="schedulerNew"  class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+	    <property name="schedulerName" value="RAMScheduler"/>
+		<property name="triggers">
+			<list>
+				<ref bean="cronUpdateSubTrigger" />
+				<ref bean="cronUpdatePridSubTrigger" />
+				<ref bean="cronUpdateImedSubTrigger" />
+			</list>
+		</property>
+	</bean>
+	
+</beans>

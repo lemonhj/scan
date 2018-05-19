@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+	<!-- 定时器  -->
+	<bean id="allIndexServiceNew" class="com.bigdata.datacenter.datasync.service.impl.AllIndexServiceImplNew"/>
+	<bean id="delDirtyIndex" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="allIndexServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>delDirtyDataToMgDB</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronDelDirtyIndexTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="delDirtyIndex" />
+		</property>
+		<property name="cronExpression">
+			<value>0 30 1 * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="scanIndex" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="allIndexServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>incrementalSync</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronUpdateIndexTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanIndex" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/29 * * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="scanIndexProChg" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="allIndexServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>UpdateIdxProChgToMgDB</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronUpdateIdxProChgTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanIndexProChg" />
+		</property>
+		<property name="cronExpression">
+			<value>0 30 0 * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="scanMacroIndex" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="allIndexServiceNew" />
+		</property>
+		<property name="targetMethod">
+			<value>updateMarcoIndexToMgDB</value>
+		</property>
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="cronScanMacroIndexTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanMacroIndex" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/5 * * * ?</value>
+		</property>
+	</bean>
+	<bean id="cronScanMacroIndexTrigger_jyd1" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanMacroIndex" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/3 8-9 * * ?</value>
+		</property>
+	</bean>
+	<bean id="cronScanMacroIndexTrigger_jyd2" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="scanMacroIndex" />
+		</property>
+		<property name="cronExpression">
+			<value>0 0/5 0-7,10-23 * * ?</value>
+		</property>
+	</bean>
+	
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="cronUpdateIndexTrigger" />
+				<!--<ref bean="cronUpdateIdxProChgTrigger" />-->
+				<ref bean="cronScanMacroIndexTrigger" />
+				<ref bean="cronDelDirtyIndexTrigger" />
+                <!-- 金银岛宏观指标更新 -->
+<!-- 				<ref bean="cronScanMacroIndexTrigger_jyd1" />
+				<ref bean="cronScanMacroIndexTrigger_jyd2" /> -->
+			</list>
+		</property>
+	</bean>
+	
+</beans>

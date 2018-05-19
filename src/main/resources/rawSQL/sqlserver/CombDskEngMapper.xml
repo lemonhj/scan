@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.IDskObjMapper">
+	<select id="selectDskObj"  resultMap="dskObjMap" >
+	    select * from dsk_obj where OBJ_ENG_NAME = 'COMCN_LIST'
+	</select>
+</mapper>

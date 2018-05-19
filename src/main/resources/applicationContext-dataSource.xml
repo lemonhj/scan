@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/jee
+	http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/data/mongo
+	http://www.springframework.org/schema/data/mongo/spring-mongo-1.5.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="/application.properties" />
+	</bean>
+
+	<!-- mysql
+	<bean id="dataSourceFromMysql" class="com.alibaba.druid.pool.DruidDataSource">
+  		<property name="driverClassName" value="${jdbc.mysql.driver}" />
+		<property name="url" value="${jdbc.mysql.url}" />
+		<property name="username" value="${jdbc.mysql.username}" />
+		<property name="password" value="${jdbc.mysql.password}" />
+		<property name="initialSize" value="5" />
+		<property name="maxActive" value="10" />
+		<property name="minIdle" value="3" />
+		<property name="maxWait" value="60000" />
+		<property name="removeAbandoned" value="true" />
+		<property name="removeAbandonedTimeout" value="180" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="30000" />
+		<property name="validationQuery" value="30000" />
+		<property name="minEvictableIdleTimeMillis" value="SELECT 1 FROM DUAL" />
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="true" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="50" />
+		<property name="filters" value="stat" />
+	</bean> -->
+	<!-- oracle
+	<bean id="dataSourceFromOracle" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.oracle.driver}" />
+		<property name="url" value="${jdbc.oracle.url}" />
+		<property name="username" value="${jdbc.oracle.username}" />
+		<property name="password" value="${jdbc.oracle.password}" />
+	</bean>
+	-->
+
+	<!-- mysql -->
+	<!--<bean id="dataSourceFromMysql" class="com.alibaba.druid.pool.DruidDataSource">-->
+  		<!--<property name="driverClassName" value="${jdbc.mysql.driver}" />-->
+		<!--<property name="url" value="${jdbc.mysql.url}" />-->
+		<!--<property name="username" value="${jdbc.mysql.username}" />-->
+		<!--<property name="password" value="${jdbc.mysql.password}" />-->
+	<!--</bean>-->
+
+	<!-- h2
+	<bean id="dataSourceFromH2" class="com.alibaba.druid.pool.DruidDataSource">
+  		<property name="driverClassName" value="${jdbc.h2.driver}" />
+		<property name="url" value="${jdbc.h2.url}" />
+		<property name="username" value="${jdbc.h2.username}" />
+		<property name="password" value="${jdbc.h2.password}" />
+	</bean> -->
+
+	<!-- mysql
+	<bean id="mysqlDynamicDataSource" class="DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="DBType">
+				<entry key="dataSourceFromMysql" value-ref="dataSourceFromMysql" />
+				<entry key="dataSourceFromOracle" value-ref="dataSourceFromOracle" />
+				<entry key="dataSourceFromH2" value-ref="dataSourceFromH2" />
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="dataSourceFromOracle" />
+	</bean>
+	-->
+
+	<!-- postgresql -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.${db.type}.driver}" />
+		<property name="url" value="${jdbc.${db.type}.url}" />
+		<property name="username" value="${jdbc.${db.type}.username}" />
+		<property name="password" value="${jdbc.${db.type}.password}" />
+		<property name="initialSize" value="20" />
+		<property name="maxActive" value="100" />
+		<property name="minIdle" value="10" />
+		<property name="maxWait" value="600000" />
+		<!-- 超过时间限制是否回收 -->
+		<property name="removeAbandoned" value="true" />
+		<!-- 超时时间；单位为秒。180秒=3分钟 -->
+		<property name="removeAbandonedTimeout" value="3600" />
+		<!-- 关闭abanded连接时输出错误日志 -->
+		<property name="logAbandoned" value="true" />
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<!-- 如果用Oracle，则把poolPreparedStatements配置为true，mysql可以配置为false。分库分表较多的数据库，建议配置为false。 -->
+		<!--<property name="poolPreparedStatements" value="false" />-->
+		<!--<property name="maxPoolPreparedStatementPerConnectionSize" value="400" />-->
+		<property name="validationQuery" value="SELECT 1 FROM DUAL" />
+		<!--检测连接是否有效的超时时间 ,单位：秒 -->
+		<property name="validationQueryTimeout" value="20" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+	</bean>
+
+	<!--<bean id="dataSource" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">-->
+		<!--<constructor-arg>-->
+			<!--<bean class="org.springframework.jdbc.datasource.SimpleDriverDataSource">-->
+				<!--<property name="driverClass" value="${jdbc.${db.type}.driver}" />-->
+				<!--<property name="url" value="${jdbc.${db.type}.url}" />-->
+				<!--<property name="username" value="${jdbc.${db.type}.username}" />-->
+				<!--<property name="password" value="${jdbc.${db.type}.password}" />-->
+			<!--</bean>-->
+		<!--</constructor-arg>-->
+	<!--</bean>-->
+</beans>

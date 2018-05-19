@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	   http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	   http://www.springframework.org/schema/tx
+	   http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	   http://www.springframework.org/schema/aop
+	   http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+	   http://www.springframework.org/schema/data/jpa
+	   http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<tx:annotation-driven />
+
+	<bean id="propertyConfigurer"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="/application.properties" />
+	</bean>
+
+	<!--  邮件配置 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host">
+			<value>${mail.host}</value>
+		</property>
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.timeout">25000</prop>
+			</props>
+		</property>
+		<property name="username">
+			<value>${mail.user}</value>
+		</property>
+		<property name="password">
+			<value>${mail.pwd}</value>
+		</property>
+		<property name="port">
+			<value>${mail.port}</value>
+		</property>
+	</bean>
+
+	<bean id="mailMge" class="org.springframework.mail.SimpleMailMessage">
+		<property name="from">
+			<value>${mail.from}</value>
+		</property>
+		<property name="to">
+			<list>
+				<value>${mail.to}</value>
+			</list>
+		</property>
+		<property name="cc">
+			<list>
+				<value>${mail.cc}</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--<bean id="mailService" class="com.bigdata.datacenter.datasync.service.impl.MailService">-->
+		<!--<property name="mailSender" ref="mailSender" />-->
+		<!--<property name="mailMge" ref="mailMge" />-->
+	<!--</bean>-->
+	
+		<!-- 该 BeanPostProcessor 将自动对标注 @Autowired 的 Bean 进行注入 -->
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
+	<context:component-scan base-package="com.bigdata.datacenter.metadata"/>
+	<!--<context:component-scan base-package="com.bigdata.datacenter.metadata.model"/>-->
+	<!--<context:component-scan base-package="com.bigdata.datacenter.metadata.data"/>-->
+	<!--<context:component-scan base-package="com.bigdata.datacenter.metadata.core.data.impl"/>-->
+	<!--<context:component-scan base-package="com.bigdata.datacenter.metadata.core.sql"/>-->
+	<!--<context:component-scan base-package="com.bigdata.datacenter.metadata.service"/>-->
+
+	<context:component-scan base-package="com.bigdata.datacenter.datasync.core.data"/>
+	<context:component-scan base-package="com.bigdata.datacenter.datasync.service"/>
+	<bean id="rawSqlLoader" class="com.bigdata.datacenter.datasync.core.sql.XmlRawSQLLoader">
+		<constructor-arg index="0" value="rawSQL/mybatis-config-${db.type}.xml" />
+	</bean>
+
+	<!-- add　nijiang-->
+	<bean id="scheduler" lazy-init="true" autowire="no"
+		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean" />
+	<bean id="schedulerNew" lazy-init="true" autowire="no"
+		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean" />
+	<bean id="schedulerMysql" lazy-init="true" autowire="no"
+		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean" />
+</beans>

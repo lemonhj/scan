@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+	<select id="selectParamType" resultType="java.lang.Long" parameterType="java.lang.Long">
+	    select param_typ from dsk_param where param_code = :param_code
+	</select>
+	
+	<select id="selectDopByObjId" resultMap="dskObjPropMap" parameterType="java.lang.Long">
+		select * from dsk_obj_prop where obj_id = :obj_id
+	</select>
+</mapper>

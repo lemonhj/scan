@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper>
+	<select id="selectAllLaw" resultMap="lawMap">
+		select a.id,  a.pub_dt, a.tit , b.obj_name as MKT_NAME, b.com_name,b.prov_desc ,b.indu_name,c.fld_val as com_id,d.fld_val as indu_id,e.cont
+		,A.UPD_TIME
+		,a.ent_time
+		,b.typ_name
+		,b.oper_typ_name
+		,a.is_valid
+		,a.info_sour
+		From txt_law_bas a 
+		left join txt_law_cst b on a.id = b.orig_id 
+		left join txt_law_att c on a.id = c.orig_id and c.fld_code = 25
+		left join txt_law_att d on a.id = d.orig_id and d.fld_code = 30
+		left join txt_law_txt e on a.id = e.orig_id
+		-- where a.is_valid = 1 
+		order by UPD_TIME,ID
+	</select>
+	
+	<select id="selectLawsByMaxUpDate" resultMap="lawMap"  parameterType="java.util.Date">
+		select * from (
+		select a.id,  a.pub_dt, a.tit , b.obj_name as MKT_NAME, b.com_name,b.prov_desc ,b.indu_name,c.fld_val as com_id,d.fld_val as indu_id,e.cont
+		,GREATEST(nvl(A.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+			               nvl(B.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+		  	               nvl(C.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+			               nvl(D.UPD_TIME, to_date('1900-01', 'yyyy-mm')),
+			               nvl(E.UPD_TIME, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME
+		,a.ent_time
+		,b.typ_name
+		,b.oper_typ_name
+		,a.is_valid
+		,a.info_sour
+		From txt_law_bas a 
+		left join txt_law_cst b on a.id = b.orig_id 
+		left join txt_law_att c on a.id = c.orig_id and c.fld_code = 25
+		left join txt_law_att d on a.id = d.orig_id and d.fld_code = 30
+		left join txt_law_txt e on a.id = e.orig_id 
+		--where
+		-- a.is_valid = 1
+		) where Upd_Time <![CDATA[>=]]> :maxUpDate order by Upd_Time desc,ID desc
+	</select>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	                    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+	                    http://www.springframework.org/schema/context
+           				http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="/application.properties" />
+    </bean>
+
+    <context:annotation-config />
+
+    <bean id="serverConfig"  class="com.avaje.ebean.config.ServerConfig">
+        <property name="name" value="test"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="ddlGenerate" value="false"/>
+        <property name="ddlRun" value="false"/>
+        <property name="externalTransactionManager">
+            <bean class="com.avaje.ebean.springsupport.txn.SpringAwareJdbcTransactionManager"/>
+        </property>
+        <property name="namingConvention">
+            <bean class="com.avaje.ebean.config.UnderscoreNamingConvention"/>
+        </property>
+    </bean>
+
+    <!--<bean id="serverConfig-mysql"  class="com.avaje.ebean.config.ServerConfig">-->
+        <!--<property name="name" value="test"/>-->
+        <!--<property name="dataSource" ref="dataSourceFromMysql"/>-->
+        <!--<property name="ddlGenerate" value="false"/>-->
+        <!--<property name="ddlRun" value="false"/>-->
+        <!--<property name="externalTransactionManager">-->
+            <!--<bean class="com.avaje.ebean.springsupport.txn.SpringAwareJdbcTransactionManager"/>-->
+        <!--</property>-->
+        <!--<property name="namingConvention">-->
+            <!--<bean class="com.avaje.ebean.config.UnderscoreNamingConvention"/>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!-- Ebean server -->
+    <bean id="ebeanServer" class="com.bigdata.datacenter.metadata.core.EbeanFactoryBean">
+        <property name="serverConfig" ref="serverConfig"/>
+    </bean>
+
+    <!--mysql EbeanService-->
+    <!--<bean id="ebeanServerFormMysql" class="com.bigdata.datacenter.metadata.core.EbeanFactoryBean">-->
+        <!--<property name="serverConfig" ref="serverConfig-mysql"/>-->
+    <!--</bean>-->
+
+</beans>

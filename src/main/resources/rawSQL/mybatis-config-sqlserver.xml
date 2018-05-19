@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappers>
+   <mapper resource="rawSQL/sqlserver/TableChangeLogMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/DskObjPropMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/IndexAllMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/TxtBltMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/TxtNwsMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/ReportBasMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/CombDskEngMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/TxtLawMapper.xml"/>
+   <mapper resource="rawSQL/sqlserver/TxtTipsMapper.xml"/>
+</mappers>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.IReportBasMapper">
+	
+	<resultMap type="java.util.HashMap"  id="induRatMap">
+		<result property="indu_rat_orig_desc"/>
+		<result property="indu_rat_orig_desc_lst" />
+	</resultMap>
+	<resultMap type="java.util.HashMap"  id="secuRatMap">
+		<result property="rat_orig_desc"/>
+		<result property="rat_orig_desc_lst" />
+		<result property=" targ_prc_min"/>
+		<result property="targ_prc_max" />
+	</resultMap>
+	
+	<select id="selectInduIdsByOrgId" resultType="Long" parameterType="Double">
+	    select indunum as indu_id from TEXT_INDUSTRY c where c.OriginalCode = :origId
+	</select>
+	<select id="selectSecuIdByOrgId" resultType="Long" parameterType="Double">
+	    select SecuCode as secu_id from text_secu d where d.OriginalCode = :origId
+	</select>
+	<select id="selectFldvalsByOrgId" resultType="Long" parameterType="Double">
+	    select 0 as fld_val from TEXT_INDUSTRY e where e.OriginalCode = :origId
+	</select>
+	<select id="selectInduRatByOrgId"  resultMap="induRatMap" parameterType="Double">
+	    select '' as indu_rat_orig_desc, '' as indu_rat_orig_desc_lst from TEXT_INDUSTRY e where e.OriginalCode = :origId
+	</select>
+	<select id="selectSecuRatByOrgId"  resultMap="secuRatMap" parameterType="Double">
+	    select InvRatingDesc as rat_orig_desc,InvRatingDescLast as rat_orig_desc_lst, 0 as targ_prc_min, 0 as targ_prc_max from TEXT_FORECASTRATING e where e.OriginalCode  = :origId
+	</select>
+
+	<select id="selectAllRrpBas" resultMap="rrpBasMap">
+select * from (SELECT A.ID,
+                A.PubDate as PUB_DT,
+                A.WritingDate as WRT_DT,
+                A.ComCode as COM_ID,
+                A.ComName as COM_NAME,
+                A.Authors as AUT,
+                A.TextTitle as TIT,
+                A.SubTitle as SUB_TIT,
+                A.Keywords as KEYW,
+                0 as OBJ_CODE,--报告涉及对象
+                0 as RPT_LVL,--报告级别
+                0 as RPT_DEG,--报告密级
+                0 as AREA_CODE,--区域
+                0 as EXCH_CODE,
+                0 as LANG_TYP,
+                '' as IS_WTR_MARK,
+                0 as SECT_CODE,
+                '' as SUBJ_CODE,
+                A.TextCategory as RPT_TYP_CODE,
+                A.Abstract as ABST_SHT,
+                A.UpdateTime as UPD_TIME,
+                A.EntryTime as ENT_TIME
+                ,F.CONSTDESC
+                FROM TEXT_BASICINFO A
+                left JOIN TEXT_ANNEX C ON A.ID = C.OriginalCode
+                --LEFT JOIN RRP_RPT_SUP B
+                --ON A.ID = B.ORIG_ID
+                JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 50
+                )
+                WHERE TIT IS NOT NULL
+                --order by UPD_TIME desc
+	</select>
+
+	<select id="selectRrpBasByMaxId" resultMap="rrpBasMap"  parameterType="java.util.Date">
+		select * from (SELECT A.ID,
+                A.PubDate as PUB_DT,
+                A.WritingDate as WRT_DT,
+                A.ComCode as COM_ID,
+                A.ComName as COM_NAME,
+                A.Authors as AUT,
+                A.TextTitle as TIT,
+                A.SubTitle as SUB_TIT,
+                A.Keywords as KEYW,
+                0 as OBJ_CODE,--报告涉及对象
+                0 as RPT_LVL,--报告级别
+                0 as RPT_DEG,--报告密级
+                0 as AREA_CODE,--区域
+                0 as EXCH_CODE,
+                0 as LANG_TYP,
+                '' as IS_WTR_MARK,
+                0 as SECT_CODE,
+                '' as SUBJ_CODE,
+                A.TextCategory as RPT_TYP_CODE,
+                A.Abstract as ABST_SHT,
+		        GREATEST(nvl(A.UpdateTime, to_date('1900-01', 'yyyy-mm')),nvl(C.UpdateTime, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME,
+		        --A.UpdateTime as UPD_TIME,
+		        A.EntryTime as ENT_TIME,
+                F.CONSTDESC
+                FROM TEXT_BASICINFO A
+                left JOIN TEXT_ANNEX C ON A.ID = C.OriginalCode
+                --LEFT JOIN RRP_RPT_SUP B
+                --ON A.ID = B.ORIG_ID
+		        JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 50
+		        WHERE A.TextTitle IS NOT NULL and A.UpdateTime <![CDATA[>=]]> to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd'))  where UPD_TIME <![CDATA[>=]]> :maxUpDate order by UPD_TIME desc
+	</select>
+	
+	<select id="selectRrpIdByMaxUpDate" resultType="java.lang.Double" parameterType="java.util.Date">
+        select ID from (
+		SELECT A.ID,
+       GREATEST(nvl(A.UpdateTime, to_date('1900-01', 'yyyy-mm')),nvl(C.UpdateTime, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME 
+        FROM TEXT_BASICINFO A
+        left JOIN TEXT_ANNEX C ON A.ID = C.OriginalCode
+		--LEFT JOIN RRP_RPT_SUP B
+		--ON A.ID = B.ORIG_ID
+		 JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 50
+		WHERE A.TextTitle IS NOT NULL) where UPD_TIME <![CDATA[>=]]> to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+</mapper>

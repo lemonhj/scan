@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.scan.dao.ITableChangeLogMapper">
+	
+   <parameterMap type="java.util.HashMap" id="dateTimeMap">
+		<parameter property="beginDateTime"/>
+		<parameter property="endDateTime" />
+	</parameterMap>
+
+	<resultMap type="java.util.HashMap" id="CstInfoMap">
+		<result property="cstDesc" column="CST_DESC" />
+		<result property="cstNum" column="CST_NUM" />
+	</resultMap>
+
+	<select id="selectDataSrcByDate"  resultMap="dskDataSourMap"  parameterMap="dateTimeMap">
+    select a.*,b.db_name from dsk_data_sour_def a
+    inner join dsk_obj b on a.obj_id = b.obj_id 
+    where ds_eng_name in
+       (select distinct DS_ENG_NAME
+          from dsk_tbl
+         where upper(TBL_NAME) in (
+                            select distinct upper(TABLENAME)
+                              from (select *
+                                       from TABLECHANGELOG
+                                      where UPDATETIME <![CDATA[>=]]> Convert(datetime ,:beginDateTime) and UPDATETIME <![CDATA[<]]> Convert(datetime ,:endDateTime)
+                                      order by UPDATETIME desc)
+                            )
+          ) and a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+              <!-- select * from dsk_data_sour_def where ds_eng_name in  ('COMCN_SH_TEN','COM_FIN_DATA_NAS') -->
+    </select>
+    
+	<select id="selectAllDataSrc" resultMap="dskDataSourMap">
+		select a.*,b.db_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id where 
+		a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+--    and DS_ENG_NAME in ('COMCN_BAS_INFO')
+	</select>
+	
+	<select id="selectAllDataSrcNm" resultType="String">
+		select distinct  a.ds_eng_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id where 
+		a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0 order by ds_eng_name asc
+	</select>
+	
+  <select id="selectMarcoDataSrc" resultMap="dskDataSourMap">
+		select a.*,b.db_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id where  
+		a.ds_typ in (5) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0 order by ds_eng_name asc
+   </select>
+   
+  <select id="selectPeriodDataSrc" resultMap="dskDataSourMap">
+		select a.*,b.db_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id where
+		a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.ref_typ in (200) and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+   </select>
+   
+  <select id="selectImedDataSrc" resultMap="dskDataSourMap">
+		select a.*,b.trig_flag,b.trig_time,c.db_name from dsk_data_sour_def a inner join DSK_DATA_SOUR_sup b on a.id = b.orig_id
+		inner join dsk_obj c on a.obj_id = c.obj_id where 
+		a.ds_typ in (2,3,7,8) and a.is_use = '1' and b.trig_flag = 1 and a.db_typ = 2 and c.obj_sts <![CDATA[<>]]> 0
+   </select>
+	
+   <select id="selectDataSrcByTbl"  resultMap="dskDataSourMap" >
+	select a.*,b.db_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id where a.ds_eng_name in (
+		select distinct DS_ENG_NAME from dsk_tbl
+		where upper(TBL_NAME) in
+		<foreach item="item" index="index" collection="list" 
+                         open="(" separator="," close=")">
+                        :item
+        </foreach>
+	) and a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.ref_typ not in (200) and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+    </select>
+    
+   <select id="selectIdxDataSrcByTbl"  resultMap="dskDataSourMap" > 
+	select a.*,b.db_name from dsk_data_sour_def a
+        inner join dsk_obj b on a.obj_id = b.obj_id 
+        where a.ds_eng_name in (
+		select distinct DS_ENG_NAME from dsk_tbl
+		where upper(TBL_NAME) in
+		<foreach item="item" index="index" collection="list" 
+                         open="(" separator="," close=")">
+                        :item
+        </foreach>
+	) and a.ds_typ in (2,3,6,7,8) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+    </select>
+
+	<select id="selectAllTbl"  resultType="String">
+		select distinct a.tbl_name from
+		dsk_tbl a inner join dsk_data_sour_def b
+		inner join dsk_obj c on b.obj_id = c.obj_id
+		on a.ds_eng_name = b.ds_eng_name
+		where b.ds_typ in (2, 3, 7,8)
+		and b.is_use = '1' and b.db_typ = 2 and c.obj_sts <![CDATA[<>]]> 0 order by a.tbl_name
+	</select>
+
+    <select id="selectAllTbl_new"  resultMap="dskDataSourMap">
+        select (select max(max_updtime) from stats_table_maxupdtime m where m.table_name = a.tbl_name and c.db_name is null) max_updtime,
+        a.tbl_name,b.*,c.db_name from dsk_tbl a
+        inner join dsk_data_sour_def b  on a.ds_eng_name = b.ds_eng_name
+        inner join dsk_obj c on b.obj_id = c.obj_id
+        where b.ds_typ in (2, 3, 7,8)
+        and b.is_use = '1' and b.db_typ = 1 and c.obj_sts <![CDATA[<>]]> 0
+        order by a.tbl_name,b.ds_eng_name
+    </select>
+
+	<select id="selectDsProChgByDate" resultMap="dskDataSourMap"  parameterMap="dateTimeMap">
+	select a.*,b.db_name
+  from dsk_data_sour_def a
+  inner join dsk_obj b on a.obj_id = b.obj_id 
+ where ds_eng_name in
+       (select distinct ds_eng_name
+          from (select a.*
+                  from dsk_tbl a
+                 inner join dsk_obj c
+                    on c.obj_eng_name = a.ds_eng_name
+                 inner join dsk_obj_prop b
+                    on c.obj_id = b.obj_id
+                 where b.upd_time <![CDATA[>=]]> Convert(datetime ,:beginDateTime)
+                 and b.upd_time <![CDATA[<]]> Convert(datetime ,:endDateTime)
+	)  y UNION select distinct ds_eng_name from dsk_data_sour_def z 
+		where z.upd_time <![CDATA[>=]]>
+		Convert(datetime ,:beginDateTime)
+		and z.upd_time <![CDATA[<]]>
+		Convert(datetime ,:endDateTime)
+	    UNION select distinct ds_eng_name
+          from (select a.*
+                  from dsk_tbl a
+                 inner join dsk_obj c
+                    on c.obj_sour = a.ds_eng_name
+                 inner join DSK_OBJ_INDEX b
+                    on c.obj_id = b.obj_id
+                 where b.upd_time <![CDATA[>=]]> Convert(datetime ,:beginDateTime)
+                 and b.upd_time <![CDATA[<]]> Convert(datetime ,:endDateTime)
+	) x ) and a.ds_typ in (2,3,7,8) and a.is_use = '1' and a.db_typ = 2 and b.obj_sts <![CDATA[<>]]> 0
+	</select>
+	<select id="selectDsIndexByObjId" resultMap="dsIndexObjMap"
+		parameterType="Long">
+		select * from DSK_OBJ_INDEX where obj_id = :obj_id order by INDEX_NAME asc
+	</select>
+	<select id = "selectSectionCstInfoLst"  resultType="java.util.HashMap">
+         select cst_desc,CST_NUM from bas_cst_info where cst_typ = 10004	
+	</select>
+</mapper>

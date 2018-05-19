@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="com.important.dao.ITxtBltMapper">
+
+	<resultMap type="java.util.HashMap"  id="secuidMap">
+		<result property="SECU_ID" column="SECU_ID"/>
+        <result property="COM_ID" column="COM_ID" />
+	</resultMap>
+
+	<parameterMap type="java.util.HashMap" id="dateTimeMap">
+		<parameter property="begDate" />
+		<parameter property="endDate" />
+	</parameterMap>
+	
+	<select id="selectSecuIdLst"  resultMap="secuidMap" >
+       select 0 as secu_id, 0 as com_id from PUB_CompanyMain where rownum = 1
+	</select>
+
+	<select id="selectAllBlt" resultMap="bulletMap">
+		select * from (
+			SELECT
+				A.Keywords as KEYW_NAME,
+				C.SecuCode as SECU_ID,
+				A.TextCategory as TYP_CODE,--证券类型
+				A.ID,--ID
+				A.PubDate as PUB_DT,
+				A.TextTitle as TIT,--标题
+				D.TradingCode as TRD_CODE,--证券代码
+				D.SecuAbbr as SECU_SHT,--证券简称
+				A.MediaName as INFO_SOUR, ---信息来源
+				A.UpdateTime as UPD_TIME,
+				A.EntryTime as ENT_TIME,
+				F.CONSTDESC as CST_DESC,
+				D.ComCode as COM_ID,
+				D.SecuCategoryCodeI as TYP_CODEI,
+				substr(A.TextCategory,1,2) as SUB_TYP_CODE,
+				E.AnnexFormat as ANN_FMT,
+				0 as FLD_CODE,
+				0 as FLD_VAL
+				,E.ID as ANN_ID
+				,A.Abstract as CONT
+				FROM TEXT_BASICINFO A
+				left join TEXT_ANNEX E ON A.ID = E.OriginalCode
+				--LEFT JOIN TXT_BLT_TYP B
+				--ON A.ID=B.ORIG_ID
+				left JOIN TEXT_SECU C ON A.ID=C.OriginalCode
+				left JOIN PUB_SecuritiesMain D ON C.SecuCode=D.SecuCode
+				JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 20
+				-- left JOIN TXT_BLT_ATT G ON A.ID=G.ORIG_ID
+			where A.PubDate <![CDATA[>=]]> to_date(to_char(:begDate,'yyyyMMdd'),'yyyyMMdd')
+			  and A.PubDate <![CDATA[<=]]> to_date(to_char(:endDate,'yyyyMMdd'),'yyyyMMdd')
+		) order by ID
+	</select>
+
+	<select id="selectBltByMaxId" resultMap="bulletMap"  parameterType="java.util.Date">
+		select * from (SELECT
+		A.Keywords as KEYW_NAME,
+		C.SecuCode as SECU_ID,
+		A.TextCategory as TYP_CODE,--证券类型
+		A.ID,--ID
+		A.PubDate as PUB_DT,
+		A.TextTitle as TIT,--标题
+		D.TradingCode as TRD_CODE,--证券代码
+		D.SecuAbbr as SECU_SHT,--证券简称
+		A.MediaName as INFO_SOUR, ---信息来源
+		GREATEST(nvl(A.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+		nvl(C.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+		nvl(D.UpdateTime, to_date('1900-01', 'yyyy-mm'))
+		,nvl(E.UpdateTime, to_date('1900-01', 'yyyy-mm'))
+		) AS UPD_TIME,
+		A.EntryTime as ENT_TIME,
+		F.CONSTDESC as CST_DESC,
+		D.ComCode as COM_ID,
+		D.SecuCategoryCodeI as TYP_CODEI,
+		substr(A.TextCategory,1,2) as SUB_TYP_CODE,
+		E.AnnexFormat as ANN_FMT,
+		0 as FLD_CODE,
+		0 as FLD_VAL
+		,E.ID as ANN_ID
+		,A.Abstract as CONT
+		FROM TEXT_BASICINFO A
+		left join TEXT_ANNEX E ON A.ID = E.OriginalCode
+		--LEFT JOIN TXT_BLT_TYP B
+		--ON A.ID=B.ORIG_ID
+		left JOIN TEXT_SECU C ON A.ID=C.OriginalCode
+		left JOIN PUB_SecuritiesMain D ON C.SecuCode=D.SecuCode
+		JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 20
+		-- left JOIN TXT_BLT_ATT G ON A.ID=G.ORIG_ID
+		where A.UpdateTime <![CDATA[>=]]> to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')
+		)
+		where Upd_Time <![CDATA[>=]]> :maxUpDate order by Upd_Time desc
+	</select>
+	
+	<select id="selectBltIdByMaxUpDate" resultType="java.lang.Double" parameterType="java.util.Date">
+		select ID from (SELECT
+			A.Keywords as KEYW_NAME,
+			C.SecuCode as SECU_ID,
+			A.TextCategory as TYP_CODE,--证券类型
+			A.ID,--ID
+			A.PubDate as PUB_DT,
+			A.TextTitle as TIT,--标题
+			D.TradingCode as TRD_CODE,--证券代码
+			D.SecuAbbr as SECU_SHT,--证券简称
+			A.MediaName as INFO_SOUR, ---信息来源
+			GREATEST(nvl(A.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+			nvl(C.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+			nvl(D.UpdateTime, to_date('1900-01', 'yyyy-mm')),
+			nvl(E.UpdateTime, to_date('1900-01', 'yyyy-mm'))) AS UPD_TIME,
+			A.EntryTime as ENT_TIME,
+			F.CONSTDESC as CST_DESC,
+			D.ComCode as COM_ID,
+			D.SecuCategoryCodeI as TYP_CODEI,
+			substr(A.TextCategory,1,2) as SUB_TYP_CODE,
+			E.AnnexFormat as ANN_FMT,
+			0 as FLD_CODE,
+			0 as FLD_VAL,
+			E.ID as ANN_ID,
+			A.Abstract as CONT
+			FROM TEXT_BASICINFO A
+			left join TEXT_ANNEX E ON A.ID = E.OriginalCode
+			--LEFT JOIN TXT_BLT_TYP B
+			--ON A.ID=B.ORIG_ID
+			left JOIN TEXT_SECU C ON A.ID=C.OriginalCode
+			left JOIN PUB_SecuritiesMain D ON C.SecuCode=D.SecuCode
+			JOIN cnt_text F ON A.TextCategory = F.CONSTCODE AND F.CNTTYPE = 20
+			-- left JOIN TXT_BLT_ATT G ON A.ID=G.ORIG_ID
+		)
+		where Upd_Time <![CDATA[>=]]>  to_date(to_char(:maxUpDate,'yyyyMMdd'),'yyyyMMdd')
+	</select>
+</mapper>
